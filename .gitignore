@@ -1,3 +1,5 @@
 /api/data/userCloud/*
+!/api/data/userCloud/.gitkeep
 /api/data/userHeads/*
+!/api/data/userHeads/.gitkeep
 /daemon/backend/node_modules
