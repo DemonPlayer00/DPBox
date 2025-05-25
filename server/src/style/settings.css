@@ -1,0 +1,78 @@
+.settingsContent{
+    width: calc(100% - 40px);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: left;
+    justify-content: center;
+    padding: 20px;
+}
+
+.optionsContent{
+    width: 100%;
+    display: flex;
+    align-items: space-between;
+    justify-content: center;
+    padding: 10px;
+}
+
+.optionTextContainer{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items:left;
+    justify-content: center;
+    word-break: break-all;
+}
+
+.option{
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.optionLabel{
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+.optionInput{
+    width: 100%;
+    height: 30px;
+    border-radius: 5px;
+    border: none;
+    padding: 5px;
+    font-size: 1rem;
+    margin-right: 10px;
+}
+
+.optionButton{
+    width: 100px;
+    height: 30px;
+    border-radius: 5px;
+    border: none;
+    background-color: #4CAF50;
+    color: white;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.optionButton:hover{
+    background-color: #3e8e41;
+}
+
+.optionTitle{
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.optionDesc{
+    font-size: 1rem;
+    margin-bottom: 20px;
+    color: #777;
+}

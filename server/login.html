@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <title>DPBox</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/src/style/framework.css">
+    <style>
+        .card {
+            width: 50%;
+            max-width: 400px;
+            aspect-ratio: 1/1;
+            display: flex;
+            justify-content: center;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f3f3f3;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+
+            transform: scale(0);
+            animation: scaleIn 0.8s cubic-bezier(0.5, 1.8, 0.5, 0.8) forwards;
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+            }
+
+            to {
+                transform: scale(1);
+            }
+        }
+
+        .cardform {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cardinput {
+            width: 100%;
+            padding: 10px;
+            padding-right: 0;
+            margin-top: 5px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .defButton {
+            background-color: #333;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 16px;
+            padding: 10px;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .defButton:hover {
+            background-color: #444;
+        }
+    </style>
+</head>
+
+<body style="display:flex;align-items: center;justify-content: center">
+    <div class="card">
+        <h1>登录</h1>
+        <form class="cardform" method="post" action="/api/user/login">
+            <input class="cardinput" type="text" id="phone" name="phone" placeholder="电话" required><br><br>
+            <input class="cardinput" type="password" id="password" name="password" placeholder="密码" required><br><br>
+            <div style="display:flex;padding-top:10px">
+                <input type="checkbox" id="newToken" name="newToken">
+                <label for="newToken">清除旧的登录令牌</label><br><br>
+            </div>
+        </form>
+        <button class="defButton">Login</button>
+        <span style="color:rgb(240, 52, 52);margin-top:10px;display:none" id="error"></span>
+    </div>
+</body>
+<script type="module">
+    import cookieHelper from '/src/jsUtils/cookieHelper.js';
+    const urlParams = new URLSearchParams(window.location.search);
+    var code = urlParams.get('code');
+    const errorEle = document.querySelector('#error');
+    switch (code) {
+        case 'PHONE_OR_PASSWORD_ERROR':
+            errorEle.innerHTML = '用户名或密码错误';
+            errorEle.style.display = 'block';
+            break;
+        case 'UNAUTHORIZED':
+            errorEle.innerHTML = '需要登录';
+            errorEle.style.display = 'block';
+            break;
+        case 'SUCCESS':
+        case '':
+        case null:
+            break;
+        default:
+            errorEle.innerHTML = '未知错误';
+            errorEle.style.display = 'block';
+            break;
+    }
+    document.querySelector('.defButton').addEventListener('click', function (event) {
+        event.preventDefault();
+        var phoneEle = document.querySelector('#phone');
+        var passwordEle = document.querySelector('#password');
+        var phone = phoneEle.value;
+        var password = passwordEle.value;
+
+        if (!phone.trim()) {
+            phoneEle.style.border = '2px solid red';
+        } else {
+            phoneEle.style.border = '';
+        }
+        if (password.length == 0) {
+            passwordEle.style.border = '2px solid red';
+        } else {
+            passwordEle.style.border = '';
+        }
+        var newToken = document.querySelector('#newToken').checked;
+        if (phone.trim() && password.length > 0) {
+            fetch('/api/user/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    phone: phone,
+                    password: password,
+                    newToken: newToken
+                })
+            }).then(response => response.json())
+                .then(function (data) {
+                    if (data.code === 'SUCCESS') {
+                        //console.log(data);
+                        cookieHelper.setCookie('token', data.token, 1000 * 60 * 60 * 24 * 7);
+                        window.location.href = '/';
+                    } else {
+                        switch (data.code) {
+                            case 'PHONE_OR_PASSWORD_ERROR':
+                                errorEle.innerHTML = '用户名或密码错误';
+                                errorEle.style.display = 'block';
+                                break;
+                            case '':
+                            case null:
+                                break;
+                            default:
+                                errorEle.innerHTML = '未知错误';
+                                errorEle.style.display = 'block';
+                                break;
+                        }
+                    }
+                }).catch(function (error) {
+                    console.error('Error:', error);
+                    alert('登录失败，请检查网络连接或联系管理员');
+                });
+        } else {
+            errorEle.innerHTML = '请检查输入内容';
+            errorEle.style.display = 'block';
+        }
+    });
+</script>
+
+</html>

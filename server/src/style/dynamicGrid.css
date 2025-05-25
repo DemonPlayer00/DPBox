@@ -1,0 +1,81 @@
+.grid-container {
+    display: grid;
+    /* 使用CSS Grid布局 */
+    grid-template-columns: repeat(3, 1fr);
+    /* 创建三列，每列宽度相等 */
+    width: 100%;
+    /* 容器宽度占满父元素 */
+    margin: 0 auto;
+    /* 居中显示容器 */
+    height: 100%;
+    justify-items: center;
+    align-content: center;
+    /* 居中显示网格项 */
+    align-items: center;
+    padding-bottom: 30px;
+    padding-top: 10px;
+}
+
+.grid-item {
+    /*background-color: rgb(223, 223, 223);*/
+    /* 背景色 */
+    display: grid;
+    justify-content: center;
+    align-items: center;
+    width: 170px;
+    /* 设置正方形的宽度 */
+    height: 170px;
+    /* 设置正方形的高度 */
+    border-radius: 10%;
+}
+
+.grid-item:hover {
+    background-color: rgba(128, 128, 128, 0.1);
+    /* 鼠标悬停时背景色 */
+    cursor: pointer;
+    /* 鼠标悬停时显示光标 */
+}
+
+.grid-item:active {
+    background-color: rgba(128, 128, 128, 0.2);
+    /* 鼠标按下时背景色 */
+}
+
+.grid-item div {
+    display: grid;
+    justify-content: center;
+    align-items: center;
+    width: 150px;
+    /* 设置正方形的宽度 */
+    height: 150px;
+}
+
+.grid-item div a {
+    text-align: center;
+    /* 居中文本 */
+    color: rgb(56, 56, 56);
+    /* 字体颜色 */
+    font-size: 18px;
+    /* 字体大小 */
+    width:100%;
+    text-align: center;
+    /* 居中文本 */
+    display: block;
+    /* 块级元素 */
+    overflow: hidden;
+    /* 隐藏溢出 */
+    white-space: nowrap;
+    /* 强制单行 */
+    text-overflow: ellipsis;
+    /* 文本溢出省略号 */
+    user-select: none;
+    /* 禁止选中 */
+    font-size: 18px;
+    /* 字体大小 */
+}
+
+.grid-item div img{
+    width:150px;
+    height:130px;
+    border-radius: 20%;
+}

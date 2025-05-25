@@ -1,0 +1,181 @@
+.pathFloat {
+    position: fixed;
+    width: calc(100% - 40px);
+    min-height: 24px;
+    padding: 0.5rem;
+    background-color: #f2f2f2;
+    border-radius: 0.25rem;
+    font-size: 0.9rem;
+    color: #333;
+    z-index: 9000;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    transform: scaleX(0);
+    transition:
+        box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    animation: scaleXIn 0.6s cubic-bezier(0.76, 0, 0.24, 1) forwards;
+}
+
+.pathFloat:hover {
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.pathFloat_tool {
+    height: 24px;
+    width: 24px;
+    cursor: pointer;
+    filter: brightness(0.5);
+    margin-left: 10px;
+    transition: background-color 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    border-radius: 25%;
+}
+
+.pathFloat_tool:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+.pathFloat_tool:active {
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+
+@keyframes scaleXIn {
+    from {
+        transform: scaleX(0);
+    }
+
+    to {
+        transform: scaleX(1);
+    }
+}
+
+.cloudDriveContent {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 50px;
+    font-size: 0.9rem;
+    height: 100%;
+    width: 100%;
+    opacity: 0;
+    animation: joinDir 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes joinDir {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.fileContent {
+    width: calc(100% - 30px);
+    margin: 5px;
+    padding: 10px;
+    border-radius: 15px;
+    font-size: 0.9rem;
+    color: #333;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 100%;
+    word-break: break-word;
+    cursor: pointer;
+
+    background-color: #f0f0f000;
+    /* 初始透明 */
+    transition:
+        background-color 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+        scale 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+        transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    /* 添加transform过渡备用 */
+}
+
+.fileContent:hover {
+    background-color: #f0f0f0ff;
+    /* 悬停时半透明 */
+}
+
+.fileContent:active {
+    background-color: #e0e0e0ff;
+    /* 点击时更深色 */
+    transition-duration: 0.1s;
+    /* 点击动画更快 */
+    scale: 0.95;
+}
+
+.selected{
+    scale:0.95;
+    background-color: #e0e0e0ff;
+}
+
+.fileName {
+    font-weight: bold;
+    font-size: x-large;
+    margin-right: 50px;
+    width: 100%;
+    text-align: left;
+}
+
+.fileTime {
+    font-size: small;
+    color: rgba(0, 0, 0, 0.5);
+    margin-top: 2px;
+}
+
+.fileImg {
+    height: 48px;
+    width: 48px;
+    margin-right: 10px;
+    margin-left: 10px;
+}
+
+.filemodel {
+    width: 75%;
+    aspect-ratio: 1/1;
+    padding: 10px;
+    margin: 10px;
+    z-index: 5000;
+}
+
+.filemenu {
+    position: fixed;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #f2f2f2;
+    border-radius: 0.25rem;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    z-index: 10500;
+    opacity: 0;
+    animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    padding: 10px;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.filemenu_item {
+    padding: 10px;
+    cursor: pointer;
+    width: 100%;
+    transition: background-color 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.filemenu_item:hover {
+    background-color: #e0e0e0;
+}
+
+.filemenu_item:active {
+    background-color: #c0c0c0;
+}

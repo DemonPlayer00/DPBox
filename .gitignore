@@ -1,0 +1,3 @@
+/api/data/userCloud/*
+/api/data/userHeads/*
+/daemon/backend/node_modules

@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <title>DPBox</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/src/style/framework.css">
+    <link rel="stylesheet" href="/src/style/cloudDrive.css">
+    <link rel="stylesheet" href="/src/style/dialog.css">
+    <link rel="stylesheet" href="/src/style/settings.css">
+    <style>
+        .pathFloatInput {
+            width: 100%;
+            border: none;
+            border-radius: 0.2rem;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- HTML 结构保持不变 -->
+    <header>
+        <img class="headImg" src="/api/user/getHeadImg" alt="DPBox" id="head">
+        <h1 id="title" style="color: #000000dc;width:100%;"></h1>
+    </header>
+    <div class="sideBar" id="sideBar">
+        <div class="sideBar_content" style="padding:10px 128px 10px 10px;">
+            <img class="headImg" src="/api/user/getHeadImg" alt="DPBox" id="sideBarHead">
+            <div style="display:flex;flex-direction:column;height:100%;justify-content:center;">
+                <span id="userName" style="font-size: large;font-weight: bold;">User</span>
+                <span id="permission" style="font-size: small;color: rgba(0,0,0,0.5);">Permission</span>
+            </div>
+        </div>
+        <div class="sideBar_content" id="main" onclick="window.LOCAL.gotoMain();window.LOCAL.cancelSideBar()">
+            <img class="icon" src="/src/icon/home.svg">主页
+        </div>
+        <h3 class="sideBar_title">可用服务</h3>
+        <div id="servicesLoad" style="display:flex;align-items:center;justify-content:center;">
+            <div class="spinner"></div>
+        </div>
+        <div class="sideBar_content" style="display: none;" id="globalUserManager"
+            onclick="window.LOCAL.gotoGlobalUserManager();window.LOCAL.cancelSideBar()">
+            <img class="icon" src="/src/icon/settings.svg">全局用户管理
+        </div>
+        <div class="sideBar_content" id="settings" onclick="window.LOCAL.gotoSettings();window.LOCAL.cancelSideBar()">
+            <img class="icon" src="/src/icon/settings.svg">设置
+        </div>
+        <div class="sideBar_content" style="display: none;" id="cloudDrive"
+            onclick="window.LOCAL.gotoCloudDrive();window.LOCAL.cancelSideBar()">
+            <img class="icon" src="/src/icon/cloud.svg">云盘
+        </div>
+    </div>
+    <div class="sideBar_overlay" id="sideBar_overlay"></div>
+    <div class="window" id="mainWindow" style="display:none;">
+        <p>DPBox是一个基于Web的个人云盘，你可以在这里存储、管理、分享你的文件。</p>
+        <p>你可以通过点击侧边栏的头像来访问你的个人信息、设置、云盘等。</p>
+    </div>
+    <div class="window" id="settingsWindow" style="display:none;">
+        <div id="settingsLoad" style="display:none;align-items:center;justify-content:center;">
+            <div class="spinner"></div>
+        </div>
+        <div class="settingsContent">
+            <h2>通用</h2>
+            <div class="optionsContent">
+                <div class="optionTextContainer">
+                    <span class="optionTitle">全局文字选中</span>
+                    <div class="optionDesc">若启用此功能，则所有页面的文字都可被选中，方便复制。</div>
+                </div>
+                <input style="margin-right: 10px;" type="checkbox" id="globalTextSelect"
+                    onchange="
+                        window.LOCAL.cookieHelper.setCookie('settings::globalTextSelect', this.checked, 365*24*60*60*1000);
+                        document.body.style.userSelect=document.getElementById('globalTextSelect').checked?'text':'none';">
+            </div>
+        </div>
+    </div>
+    <div class="window" id="cloudDriveWindow" style="display:none;">
+        <div id="cloudDriveLoad" style="display:none;align-items:center;justify-content:center;margin-top: 50px;">
+            <div class="spinner"></div>
+        </div>
+        <div class="pathFloat">
+            <input class="pathFloatInput" type="text" style="width:100%;" id="pathView"></input>
+            <div id="viewMode" style="display:flex;">
+                <img id="viewMode_upload" class="pathFloat_tool" style="height:20px;width:20px;margin-left:10px;"
+                    src="/src/icon/upload.svg">
+                <img class="pathFloat_tool" style="height:20px;width:20px;margin-left:10px;" src="/src/icon/back.svg"
+                    onclick="window.LOCAL.backPath();">
+                <img class="pathFloat_tool" style="height:20px;width:20px;margin-left:10px;" src="/src/icon/pencil.svg"
+                    onclick="window.LOCAL.toEditMode();">
+            </div>
+            <div id="editMode" style="display:none;">
+                <img id="editMode_extendSelect" class="pathFloat_tool" style="height:20px;width:20px;margin-left:10px;"
+                    src="/src/icon/extend_select.svg">
+                <img id="editMode_delete" class="pathFloat_tool" style="height:20px;width:20px;margin-left:10px;"
+                    src="/src/icon/delete.svg">
+                <img id="editMode_download" class="pathFloat_tool" style="height:20px;width:20px;margin-left:10px;"
+                    src="/src/icon/download.svg">
+                <img class="pathFloat_tool" style="height:20px;width:20px;margin-left:10px;" src="/src/icon/eye.svg"
+                    onclick="window.LOCAL.toViewMode();">
+            </div>
+            <img id="pathFloat_settings" class="pathFloat_tool" style="height:20px;width:20px;margin-left:10px;"
+                src="/src/icon/settings.svg">
+        </div>
+        <div class="cloudDriveContent" id="cloudDriveContent">
+        </div>
+    </div>
+    <div class="window" id="globalUserManagerWindow" style="display:none;">
+        <div id="globalUserManagerLoad" style="display:flex;align-items:center;justify-content:center;">
+            <div class="spinner"></div>
+        </div>
+        很长一段时间都不会写这个功能，所以先留个坑。
+    </div>
+</body>
+<script type="module">
+    import cloudio from '/src/jsUtils/cloudio.js';
+    import cookieHelper from '/src/jsUtils/cookieHelper.js';
+    import dialogHelper from '/src/jsUtils/dialogHelper.js';
+    import sleep from '/src/jsUtils/sleep.js';
+    import fileSorter from '/src/jsUtils/fileSorter.js';
+    import userInfoHelper from '/src/jsUtils/userInfoHelper.js';
+
+    class DPBoxApp {
+        constructor() {
+            this.url = new URL(window.location.href);
+            this.params = this.url.searchParams;
+
+            // 用户信息
+            this.user = {
+                info: null,
+                services: null
+            };
+
+            // 侧边栏
+            this.sidebar = {
+                element: document.getElementById("sideBar"),
+                overlay: document.getElementById("sideBar_overlay"),
+                headImg: document.getElementById("head")
+            };
+
+            // 标题
+            this.title = document.getElementById("title");
+
+            // 窗口
+            this.windows = {
+                main: document.getElementById("mainWindow"),
+                settings: document.getElementById("settingsWindow"),
+                globalUserManager: document.getElementById("globalUserManagerWindow"),
+                cloudDrive: {
+                    element: document.getElementById("cloudDriveWindow"),
+                    content: document.getElementById("cloudDriveContent"),
+                    load: document.getElementById("cloudDriveLoad"),
+                    pathView: document.getElementById("pathView"),
+                    editModeDownload: document.getElementById("editMode_download"),
+                    viewModeUpload: document.getElementById("viewMode_upload"),
+                    editModeDelete: document.getElementById("editMode_delete"),
+                    pathFloatSettings: document.getElementById("pathFloat_settings"),
+                    viewModeEle: document.getElementById("viewMode"),
+                    editModeEle: document.getElementById("editMode"),
+                    fileContentEle: document.getElementsByClassName('fileContent'),
+                    editModeExtendSelectEle: document.getElementById("editMode_extendSelect")
+                }
+            };
+
+            // 云盘
+            this.cloudDrive = {
+                path: this.params.get('path') ? this.params.get('path') : '/',
+                pathHistory: [],
+                files: [],
+                editMode: false,
+                extendSelectedRange: [],
+                sortFunc: fileSorter[cookieHelper.getCookie('cloudDrive::sort')] || fileSorter.sortByTime,
+                delta: cookieHelper.getCookie('cloudDrive::filesReverse') == "true" ? -1 : 1,
+                cdelta: cookieHelper.getCookie('cloudDrive::classifFiles') == "true" ? -1 : 1,
+                classifFiles: cookieHelper.getCookie('cloudDrive::classifFiles') == "true" ? fileSorter.classifFiles : null,
+                editSelected: { file: new Set(), dir: new Set() },
+                uploadDialog: null,
+                settingsDialog: null
+            };
+
+            if (this.cloudDrive.path[0] !== '/') this.cloudDrive.path = '/' + this.cloudDrive.path;
+
+            this.initEventListeners();
+            this.initUserInfo();
+            this.initSettings();
+            this.initCloudDrive();
+            this.initServices();
+        }
+
+        initEventListeners() {
+            this.sidebar.headImg.addEventListener('click', () => this.showSideBar());
+            this.sidebar.overlay.addEventListener('click', () => this.cancelSideBar());
+            this.windows.cloudDrive.pathView.addEventListener('keydown', (e) => this.handlePathViewKeydown(e));
+            this.windows.cloudDrive.editModeDownload.addEventListener('click', () => this.downloadFiles());
+            this.windows.cloudDrive.viewModeUpload.addEventListener('click', () => this.showUploadDialog());
+            this.windows.cloudDrive.editModeDelete.addEventListener('click', () => this.deleteFiles());
+            this.windows.cloudDrive.pathFloatSettings.addEventListener('click', () => this.showSettingsDialog());
+        }
+
+        initUserInfo() {
+            userInfoHelper.getUserInfo().then((iuserInfo) => {
+                this.user.info = iuserInfo;
+                document.getElementById("userName").innerText = this.user.info.name;
+                document.getElementById("permission").innerText = this.user.info.permission;
+            });
+        }
+
+        initSettings() {
+            if (cookieHelper.getCookie('settings::globalTextSelect') == "true") {
+                document.getElementById("globalTextSelect").checked = true;
+                document.body.style.userSelect = 'text';
+            } else {
+                document.getElementById("globalTextSelect").checked = false;
+                document.body.style.userSelect = 'none';
+            }
+        }
+
+        initCloudDrive() {
+            this.cloudDrive.uploadDialog = dialogHelper.getFileInputDialog('上传文件', async (files, uploadToPath, progress, subprogress) => {
+                await cloudio.uploadFiles(uploadToPath || this.cloudDrive.path, files, progress, subprogress);
+            }, undefined, false);
+
+            this.cloudDrive.settingsDialog = dialogHelper.getBaseDialog('云盘设置', `
+                <div style="width:100%;">
+                    <div>
+                        <label>排序方式：</label>
+                        <select id="sortSelect">
+                            <option value="sortByTime">按时间排序</option>
+                            <option value="sortBySize">按大小排序</option>
+                            <option value="sortByName">按名称排序</option>
+                        </select>
+                        <label>倒序：</label><input type="checkbox" id="filesReverseCheck">
+                    </div>
+                    <div>
+                        <label>分开文件和文件夹：</label>
+                        <input type="checkbox" id="classifFilesCheck">
+                    </div>
+                    <div style="display:none;">
+                        <label>显示方式：</label>
+                        <select id="viewSelect">
+                            <option value="list">列表</option>
+                            <option value="grid">网格</option>
+                        </select>
+                    </div>
+                </div>
+            `, undefined, false);
+
+            const sortSelect = this.cloudDrive.settingsDialog.querySelector('#sortSelect');
+            const classifFilesCheck = this.cloudDrive.settingsDialog.querySelector('#classifFilesCheck');
+            const viewSelect = this.cloudDrive.settingsDialog.querySelector('#viewSelect');
+            const filesReverseCheck = this.cloudDrive.settingsDialog.querySelector('#filesReverseCheck');
+
+            sortSelect.value = cookieHelper.getCookie('cloudDrive::sort') || 'sortByTime';
+            classifFilesCheck.checked = cookieHelper.getCookie('cloudDrive::classifFiles') == "true";
+            viewSelect.value = cookieHelper.getCookie('cloudDrive::view') || 'list';
+            filesReverseCheck.checked = cookieHelper.getCookie('cloudDrive::filesReverse') == "true";
+
+            sortSelect.addEventListener('change', () => {
+                cookieHelper.setCookie('cloudDrive::sort', sortSelect.value, 365 * 24 * 60 * 60 * 1000);
+                this.fullCloudDriveContent(this.cloudDrive.files, this.cloudDrive.sortFunc = fileSorter[sortSelect.value], this.cloudDrive.classifFiles, true, this.cloudDrive.delta, this.cloudDrive.cdelta);
+            });
+
+            classifFilesCheck.addEventListener('change', () => {
+                cookieHelper.setCookie('cloudDrive::classifFiles', classifFilesCheck.checked, 365 * 24 * 60 * 60 * 1000);
+                this.fullCloudDriveContent(this.cloudDrive.files, this.cloudDrive.sortFunc, this.cloudDrive.classifFiles = classifFilesCheck.checked ? fileSorter.classifFiles : null, true, this.cloudDrive.delta, this.cloudDrive.cdelta);
+            });
+
+            viewSelect.addEventListener('change', () => {
+                cookieHelper.setCookie('cloudDrive::view', viewSelect.value, 365 * 24 * 60 * 60 * 1000);
+                this.fullCloudDriveContent(this.cloudDrive.files, this.cloudDrive.sortFunc, this.cloudDrive.classifFiles, true, this.cloudDrive.delta, this.cloudDrive.cdelta);
+            });
+
+            filesReverseCheck.addEventListener('change', () => {
+                cookieHelper.setCookie('cloudDrive::filesReverse', filesReverseCheck.checked ? "true" : "false", 365 * 24 * 60 * 60 * 1000);
+                this.fullCloudDriveContent(this.cloudDrive.files, this.cloudDrive.sortFunc, this.cloudDrive.classifFiles, true, this.cloudDrive.delta = filesReverseCheck.checked ? -1 : 1, this.cloudDrive.cdelta);
+            });
+        }
+
+        initServices() {
+            userInfoHelper.getUserServices().then((iServices) => {
+                this.user.services = iServices;
+                if (this.user.services.cloudDrive) document.getElementById("cloudDrive").style.display = 'flex';
+                if (this.user.services.globalUserManager) document.getElementById("globalUserManager").style.display = 'flex';
+                document.getElementById("servicesLoad").style.display = 'none';
+
+                if (this.user.services) {
+                    switch (this.params.get('page')) {
+                        case 'settings':
+                            this.gotoSettings();
+                            break;
+                        case 'cloudDrive':
+                            if (this.user.services.cloudDrive) {
+                                this.gotoCloudDrive();
+                            } else {
+                                this.gotoMain();
+                            }
+                            break;
+                        case 'globalUserManager':
+                            if (this.user.services.globalUserManager) {
+                                this.gotoGlobalUserManager();
+                            } else {
+                                this.gotoMain();
+                            }
+                            break;
+                        default:
+                            this.gotoMain();
+                            break;
+                    }
+                }
+            });
+        }
+
+        showSideBar() {
+            this.sidebar.element.style.transform = 'translateX(0)';
+            this.sidebar.overlay.style.display = 'block';
+            this.sidebar.overlay.classList.remove('hide');
+            this.sidebar.overlay.classList.add('show');
+        }
+
+        cancelSideBar() {
+            this.sidebar.element.style.transform = 'translateX(-100%)';
+            this.sidebar.overlay.classList.remove('show');
+            this.sidebar.overlay.classList.add('hide');
+            this.sidebar.overlay.addEventListener('animationend', () => {
+                this.sidebar.overlay.style.display = 'none';
+            }, { once: true });
+        }
+
+        handlePathViewKeydown(e) {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                this.windows.cloudDrive.pathView.value = this.windows.cloudDrive.pathView.value.replace(/\/+/g, '/');
+                if (this.windows.cloudDrive.pathView.value[this.windows.cloudDrive.pathView.value.length - 1] !== '/') this.windows.cloudDrive.pathView.value += '/';
+                if (this.cloudDrive.path !== this.windows.cloudDrive.pathView.value) this.cloudDrive.pathHistory.push(this.cloudDrive.path);
+                this.cloudDrive.path = this.windows.cloudDrive.pathView.value;
+                this.gotoCloudDrive();
+            }
+        }
+
+        downloadFiles() {
+            cloudio.downloadFiles(this.cloudDrive.path, [...(this.cloudDrive.editSelected.file)]);
+        }
+
+        deleteFiles() {
+            dialogHelper.getConfirmDialog('确认删除文件？', `将删除选中的${this.cloudDrive.editSelected.file.size + this.cloudDrive.editSelected.dir.size}个文件。`, async () => {
+                await cloudio.rm(this.cloudDrive.path, [...(this.cloudDrive.editSelected.file), ...(this.cloudDrive.editSelected.dir)]);
+                this.cloudDrive.files = await cloudio.ls(this.cloudDrive.path);
+                this.fullCloudDriveContent(this.cloudDrive.files, this.cloudDrive.sortFunc, this.cloudDrive.classifFiles, true, this.cloudDrive.delta, this.cloudDrive.cdelta);
+                this.toViewMode();
+            }).show();
+        }
+
+        showUploadDialog() {
+            this.cloudDrive.uploadDialog.show();
+        }
+
+        showSettingsDialog() {
+            this.cloudDrive.settingsDialog.show();
+        }
+
+        fullCloudDriveContent(files, sort = null, classifFiles = null, reflash = true, idelta = null, icdelta = null) {
+            const target = this.windows.cloudDrive.content;
+            if (idelta === null) idelta = this.cloudDrive.delta;
+            if (icdelta === null) icdelta = this.cloudDrive.cdelta;
+            if (sort) {
+                files = sort(files, idelta);
+            }
+            if (classifFiles) {
+                files = classifFiles(files, icdelta);
+            }
+            if (reflash) target.innerHTML = '';
+            this.cloudDrive.editSelected.file.clear();
+            this.cloudDrive.editSelected.dir.clear();
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const oldFile = target.children[i];
+                const fileContent = cloudio.getFileContent(file);
+                fileContent.addEventListener('click', () => {
+                    if (this.cloudDrive.editMode) {
+                        if (this.cloudDrive.editSelected[file.type].has(file.name)) {
+                            this.cloudDrive.editSelected[file.type].delete(file.name);
+                            this.cloudDrive.extendSelectedRange.splice(this.cloudDrive.extendSelectedRange.indexOf(i), 1);
+                            fileContent.classList.remove('selected');
+                        } else {
+                            this.cloudDrive.editSelected[file.type].add(file.name);
+                            this.cloudDrive.extendSelectedRange.push(i);
+                            if (this.cloudDrive.extendSelectedRange.length > 2) {
+                                this.cloudDrive.extendSelectedRange.shift();
+                            }
+                            fileContent.classList.add('selected');
+                        }
+                        this.reflashEditAvailable();
+                    } else {
+                        if (file.type === 'dir') {
+                            this.cloudDrive.pathHistory.push(this.cloudDrive.path);
+                            this.cloudDrive.path += file.name + '/';
+                            this.gotoCloudDrive();
+                        }
+                        if (file.type === 'file') {
+                            const dialog = dialogHelper.getConfirmDialog('确认下载文件？', `将下载'${file.name}'到本地。`, () => {
+                                cloudio.downloadFile(this.cloudDrive.path, file.name);
+                            });
+                            dialog.show();
+                        }
+                    }
+                });
+                if (oldFile) {
+                    oldFile.replaceWith(fileContent);
+                } else {
+                    target.appendChild(fileContent);
+                }
+            }
+        }
+
+        async gotoCloudDrive() {
+            this.title.innerText = "云盘";
+            this.hideAllWindows();
+            this.windows.cloudDrive.element.style.display = 'flex';
+            this.windows.cloudDrive.content.style.display = 'none';
+            this.windows.cloudDrive.load.style.display = 'flex';
+            this.params.set('page', 'cloudDrive');
+            if (this.cloudDrive.path === '') this.cloudDrive.path = '/';
+            const pathStat = await cloudio.stat(this.cloudDrive.path);
+            if (!pathStat || pathStat.type !== 'dir') {
+                if (this.cloudDrive.path !== '/') this.backPath();
+                return;
+            }
+            this.params.set('path', this.cloudDrive.path);
+            window.history.replaceState(null, null, `${window.location.pathname}?${this.params.toString()}`);
+            this.windows.cloudDrive.pathView.value = this.cloudDrive.path;
+            this.cloudDrive.files = await cloudio.ls(this.cloudDrive.path);
+            this.fullCloudDriveContent(this.cloudDrive.files, this.cloudDrive.sortFunc, this.cloudDrive.classifFiles, true, this.cloudDrive.delta, this.cloudDrive.cdelta);
+            this.windows.cloudDrive.content.style.display = 'flex';
+            this.windows.cloudDrive.load.style.display = 'none';
+            this.toViewMode();
+        }
+
+        gotoMain() {
+            this.title.innerText = "Welcome to DPBox!";
+            this.hideAllWindows();
+            this.windows.main.style.display = 'flex';
+            this.params.set('page', 'main');
+            window.history.replaceState(null, null, `${window.location.pathname}?${this.params.toString()}`);
+        }
+
+        gotoSettings() {
+            this.title.innerText = "设置";
+            this.hideAllWindows();
+            this.windows.settings.style.display = 'flex';
+            this.params.set('page', 'settings');
+            window.history.replaceState(null, null, `${window.location.pathname}?${this.params.toString()}`);
+        }
+
+        gotoGlobalUserManager() {
+            this.title.innerText = "全局用户管理";
+            this.hideAllWindows();
+            this.windows.globalUserManager.style.display = 'flex';
+            this.params.set('page', 'globalUserManager');
+            window.history.replaceState(null, null, `${window.location.pathname}?${this.params.toString()}`);
+        }
+
+        hideAllWindows() {
+            this.windows.main.style.display = 'none';
+            this.windows.settings.style.display = 'none';
+            this.windows.globalUserManager.style.display = 'none';
+            this.windows.cloudDrive.element.style.display = 'none';
+        }
+
+        backPath() {
+            if (this.cloudDrive.pathHistory.length > 0) {
+                this.cloudDrive.path = this.cloudDrive.pathHistory.pop();
+                this.gotoCloudDrive();
+                return;
+            }
+            if (this.cloudDrive.path !== '/') {
+                this.cloudDrive.path = this.cloudDrive.path.substring(0, this.cloudDrive.path.lastIndexOf('/', this.cloudDrive.path.length - 2));
+                this.gotoCloudDrive();
+                return;
+            }
+        }
+
+        toEditMode() {
+            this.cloudDrive.editMode = true;
+            this.windows.cloudDrive.editModeEle.style.display = 'flex';
+            this.windows.cloudDrive.viewModeEle.style.display = 'none';
+            this.cloudDrive.editSelected.file.clear();
+            this.cloudDrive.editSelected.dir.clear();
+            for (let i = 0; i < this.windows.cloudDrive.fileContentEle.length; i++) {
+                this.windows.cloudDrive.fileContentEle[i].style.boxShadow = '0px 2px 3px 0px rgba(0,0,0,0.2)';
+                if (this.cloudDrive.editSelected[this.cloudDrive.files[i].type].has(this.cloudDrive.files[i].name)) {
+                    this.windows.cloudDrive.fileContentEle[i].classList.add('selected');
+                }
+            }
+            this.windows.cloudDrive.pathView.readOnly = true;
+        }
+
+        async toViewMode() {
+            this.cloudDrive.editMode = false;
+            this.windows.cloudDrive.editModeEle.style.display = 'none';
+            this.windows.cloudDrive.viewModeEle.style.display = 'flex';
+            this.cloudDrive.files = await cloudio.ls(this.cloudDrive.path);
+            this.fullCloudDriveContent(this.cloudDrive.files, this.cloudDrive.sortFunc, this.cloudDrive.classifFiles, false);
+            this.windows.cloudDrive.pathView.readOnly = false;
+            this.reflashEditAvailable();
+        }
+
+        reflashEditAvailable() {
+            if (this.cloudDrive.editSelected.dir.size > 0 || this.cloudDrive.editSelected.file.size === 0) {
+                this.windows.cloudDrive.editModeDownload.style.pointerEvents = 'none';
+                this.windows.cloudDrive.editModeDownload.style.opacity = 0.5;
+            } else {
+                this.windows.cloudDrive.editModeDownload.style.pointerEvents = 'auto';
+                this.windows.cloudDrive.editModeDownload.style.opacity = 1;
+            }
+
+            if (this.cloudDrive.editSelected.file.size > 0 || this.cloudDrive.editSelected.dir.size > 0) {
+                this.windows.cloudDrive.editModeDelete.style.pointerEvents = 'auto';
+                this.windows.cloudDrive.editModeDelete.style.opacity = 1;
+            } else {
+                this.windows.cloudDrive.editModeDelete.style.pointerEvents = 'none';
+                this.windows.cloudDrive.editModeDelete.style.opacity = 0.5;
+            }
+            
+            if(this.cloudDrive.extendSelectedRange.length === 2){
+                this.windows.cloudDrive.editModeExtendSelectEle.style.pointerEvents = 'auto';
+                this.windows.cloudDrive.editModeExtendSelectEle.style.opacity = 1;
+            }else{
+                this.windows.cloudDrive.editModeExtendSelectEle.style.pointerEvents = 'none';
+                this.windows.cloudDrive.editModeExtendSelectEle.style.opacity = 0.5;
+            }
+        }
+    }
+
+    window.LOCAL = {
+        cookieHelper,
+        cloudio,
+        cancelSideBar: () => app.cancelSideBar(),
+        gotoMain: () => app.gotoMain(),
+        gotoSettings: () => app.gotoSettings(),
+        gotoCloudDrive: () => app.gotoCloudDrive(),
+        gotoGlobalUserManager: () => app.gotoGlobalUserManager(),
+        backPath: () => app.backPath(),
+        toEditMode: () => app.toEditMode(),
+        toViewMode: () => app.toViewMode(),
+        reflashEditAvailable: () => app.reflashEditAvailable()
+    };
+
+    const app = new DPBoxApp();
+</script>
+
+</html>

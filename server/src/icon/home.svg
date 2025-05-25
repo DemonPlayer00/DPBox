@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="512"
+   height="512"
+   viewBox="0 0 512 512"
+   version="1.1"
+   id="svg1"
+   inkscape:version="1.4.1 (93de688d07, 2025-03-30)"
+   sodipodi:docname="home.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="px"
+     inkscape:zoom="1.5664062"
+     inkscape:cx="279.30175"
+     inkscape:cy="259.19203"
+     inkscape:window-width="1920"
+     inkscape:window-height="1014"
+     inkscape:window-x="0"
+     inkscape:window-y="29"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs1">
+    <inkscape:path-effect
+       effect="fillet_chamfer"
+       id="path-effect1"
+       is_visible="true"
+       lpeversion="1"
+       nodesatellites_param="F,0,0,1,0,28.097355,0,1 @ F,0,0,1,0,38.693853,0,1 @ F,0,1,1,0,38.693853,0,1"
+       radius="0"
+       unit="px"
+       method="auto"
+       mode="F"
+       chamfer_steps="1"
+       flexible="false"
+       use_knot_distance="true"
+       apply_no_radius="true"
+       apply_with_radius="true"
+       only_selected="false"
+       hide_knots="false" />
+  </defs>
+  <g
+     inkscape:label="图层 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       id="rect1"
+       style="fill:#cccccc;fill-rule:evenodd;stroke-width:32.2187;stroke-linejoin:round"
+       d="M 255.29883 50 C 241.26797 50.076315 227.3507 64.250883 199.30664 92.294922 C 143.21853 148.38301 143.12109 148.48047 143.12109 148.48047 L 86.935547 204.66602 C 41.322547 250.27904 32.537064 258.86348 91.607422 260.47852 C 91.678626 296.46385 91.728368 350.06319 91.509766 385.02148 C 91.509766 427.66806 125.84365 462 168.49023 462 L 343.50977 462 C 386.15635 462 420.49023 427.66806 420.49023 385.02148 L 420.49023 260.49414 C 479.21427 258.9222 470.94429 250.43905 424.93164 204.66602 C 368.29633 148.32564 368.45117 148.48047 368.45117 148.48047 C 368.45117 148.48047 368.96809 148.99352 311.97266 92.294922 C 283.47494 63.945624 269.32969 49.923685 255.29883 50 z " />
+    <rect
+       style="fill:#b3b3b3;fill-rule:evenodd;stroke:none;stroke-width:37.2537;stroke-linejoin:round"
+       id="rect2"
+       width="100"
+       height="100"
+       x="206"
+       y="266"
+       ry="35.955116" />
+  </g>
+</svg>
