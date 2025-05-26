@@ -11,5 +11,6 @@ chmod +x daemon/backend/*.sh
 cd /daemon/backend
 npm init -y
 ./packinstall.sh
+#(start redis)
 node index.js
 ```
