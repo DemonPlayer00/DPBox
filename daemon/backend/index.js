@@ -13,7 +13,7 @@ const cookieParser = require('cookie-parser');
 const rateLimit = require('express-rate-limit');
 const banUtils = require('./utils/banUtils');
 const crypto = require('crypto');
-const root = '/var/www/DPBox.org/';
+const root = '../../';
 
 const upload = multer({
   storage: multer.memoryStorage(), // 使用内存存储
