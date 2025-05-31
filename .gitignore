@@ -3,3 +3,4 @@
 /api/data/userHeads/*
 !/api/data/userHeads/.gitkeep
 /daemon/backend/node_modules
+/daemon/backend/data.rdb

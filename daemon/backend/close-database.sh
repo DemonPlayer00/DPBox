@@ -1,0 +1,1 @@
+redis-cli --port 1145 shutdown

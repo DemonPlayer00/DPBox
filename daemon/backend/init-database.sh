@@ -1,0 +1,1 @@
+redis-server --dir ./ --dbfilename data.rdb --port 1145

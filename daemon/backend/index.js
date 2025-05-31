@@ -31,9 +31,14 @@ const chunkUpload = upload.fields([
 const options = {
   key: fs.readFileSync(`${root}/ssl/DPBox.org.key`),
   cert: fs.readFileSync(`${root}/ssl/DPBox.org.crt`)
-};
+}
 
-const redis = Redis.createClient();  // 默认连接到 localhost:6379
+const redis = Redis.createClient({
+  port: 1145,
+  host: 'localhost',
+  password: '',
+  db: 0
+});  // 默认连接到 localhost:6379
 
 // 确保 Redis 客户端已连接
 redis.connect()
