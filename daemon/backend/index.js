@@ -13,6 +13,7 @@ const cookieParser = require('cookie-parser');
 const rateLimit = require('express-rate-limit');
 const banUtils = require('./utils/banUtils');
 const crypto = require('crypto');
+const stream = require('stream');
 const root = '../../';
 
 const upload = multer({
@@ -177,48 +178,165 @@ app.get('/api/service/cloudDrive/io/stat', async (req, res) => {
     });
   });
 })
+
 app.get('/api/service/cloudDrive/io/download', async (req, res) => {
+  console.log(`Download: phone=${req.LOCAL.userInfo.phone}, path=${req.query.path},ip=${req.ip}`);
   const filePath = req.LOCAL.path;
   const fileName = path.basename(filePath);
+  const rateLimit = 1024 * 100; // 默认限制为100KB/s
+  
+  // 标记响应是否已发送
+  let headersSent = false;
+  
+  // 封装发送错误响应的函数，确保只发送一次
+  const sendError = (statusCode, message) => {
+    if (!headersSent) {
+      headersSent = true;
+      res.status(statusCode).send(message);
+    }
+  };
 
-  // 获取文件状态信息
-  const stat = fs.statSync(filePath);
-  const fileSize = stat.size;
+  try {
+    // 获取文件状态信息
+    const stat = fs.statSync(filePath);
+    const fileSize = stat.size;
 
-  // 获取请求头中的Range信息
-  const range = req.headers.range;
+    // 获取请求头中的Range信息
+    const range = req.headers.range;
 
-  if (range) {
-    // 处理断点续传
-    const parts = range.replace(/bytes=/, "").split("-");
-    const start = parseInt(parts[0], 10);
-    const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
-    const chunkSize = (end - start) + 1;
+    // 创建文件流
+    let fileStream;
+    let responseHeaders;
+    let statusCode = 200;
 
-    // 创建可读流
-    const file = fs.createReadStream(filePath, { start, end });
+    if (range) {
+      // 处理断点续传
+      const parts = range.replace(/bytes=/, "").split("-");
+      const start = parseInt(parts[0], 10);
+      const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+      const chunkSize = (end - start) + 1;
 
-    // 设置响应头
-    res.writeHead(206, {
-      "Content-Range": `bytes ${start}-${end}/${fileSize}`,
-      "Accept-Ranges": "bytes",
-      "Content-Length": chunkSize,
-      "Content-Type": "application/octet-stream",
-      "Content-Disposition": `attachment; filename=${encodeURIComponent(fileName)}`
+      fileStream = fs.createReadStream(filePath, { start, end });
+      
+      responseHeaders = {
+        "Content-Range": `bytes ${start}-${end}/${fileSize}`,
+        "Accept-Ranges": "bytes",
+        "Content-Length": chunkSize,
+        "Content-Type": "application/octet-stream",
+        "Content-Disposition": `attachment; filename=${encodeURIComponent(fileName)}`,
+        "X-Rate-Limit": `${rateLimit / 1024} KB/s`
+      };
+      
+      statusCode = 206;
+    } else {
+      // 普通下载
+      fileStream = fs.createReadStream(filePath);
+      
+      responseHeaders = {
+        "Content-Length": fileSize,
+        "Content-Type": "application/octet-stream",
+        "Content-Disposition": `attachment; filename=${encodeURIComponent(fileName)}`,
+        "X-Rate-Limit": `${rateLimit / 1024} KB/s`
+      };
+    }
+
+    // 创建速率限制流
+    const throttle = createThrottleStream(rateLimit);
+
+    // 设置错误处理
+    fileStream.on('error', (err) => {
+      console.error('文件流错误:', err);
+      sendError(500, '下载过程中发生错误');
+      
+      // 销毁流以防止内存泄漏
+      if (fileStream) fileStream.destroy();
+      if (throttle) throttle.destroy();
     });
 
-    // 传输文件
-    file.pipe(res);
-  } else {
-    // 普通下载
-    res.writeHead(200, {
-      "Content-Length": fileSize,
-      "Content-Type": "application/octet-stream",
-      "Content-Disposition": `attachment; filename=${encodeURIComponent(fileName)}`
+    throttle.on('error', (err) => {
+      console.error('速率限制流出错:', err);
+      sendError(500, '下载过程中发生错误');
+      
+      // 销毁流以防止内存泄漏
+      if (fileStream) fileStream.destroy();
+      if (throttle) throttle.destroy();
     });
-    fs.createReadStream(filePath).pipe(res);
+
+    // 监听响应完成事件
+    res.on('finish', () => {
+      headersSent = true;
+    });
+
+    // 监听响应关闭事件
+    res.on('close', () => {
+      // 客户端提前关闭连接，清理资源
+      if (fileStream) fileStream.destroy();
+      if (throttle) throttle.destroy();
+    });
+
+    // 发送响应头
+    res.writeHead(statusCode, responseHeaders);
+    headersSent = true;
+
+    // 通过速率限制流传输文件
+    fileStream.pipe(throttle).pipe(res);
+  } catch (err) {
+    console.error('下载错误:', err);
+    sendError(500, '下载过程中发生错误');
   }
 });
+// 创建速率限制流的辅助函数
+function createThrottleStream(bytesPerSecond) {
+  const THROTTLE_INTERVAL = 100; // 每100ms检查一次速率
+  const bytesPerInterval = bytesPerSecond * (THROTTLE_INTERVAL / 1000);
+  
+  let buffer = [];
+  let currentIntervalBytes = 0;
+  let lastIntervalTime = Date.now();
+  
+  return new stream.Transform({
+    transform(chunk, encoding, callback) {
+      const now = Date.now();
+      
+      // 如果是新的时间间隔，重置计数器
+      if (now - lastIntervalTime > THROTTLE_INTERVAL) {
+        lastIntervalTime = now;
+        currentIntervalBytes = 0;
+        
+        // 立即发送累积的缓冲区数据
+        if (buffer.length > 0) {
+          this.push(Buffer.concat(buffer));
+          buffer = [];
+        }
+      }
+      
+      // 如果当前间隔内已发送的数据超过限制，将数据放入缓冲区
+      if (currentIntervalBytes + chunk.length > bytesPerInterval) {
+        const bytesLeft = bytesPerInterval - currentIntervalBytes;
+        
+        if (bytesLeft > 0) {
+          this.push(chunk.slice(0, bytesLeft));
+          currentIntervalBytes += bytesLeft;
+        }
+        
+        buffer.push(chunk.slice(bytesLeft));
+        
+        // 安排在下一个时间间隔发送剩余数据
+        setTimeout(() => {
+          this.push(Buffer.concat(buffer));
+          buffer = [];
+          callback();
+        }, THROTTLE_INTERVAL - (now - lastIntervalTime));
+      } else {
+        // 数据量未超过限制，直接发送
+        this.push(chunk);
+        currentIntervalBytes += chunk.length;
+        callback();
+      }
+    }
+  });
+}
+
 
 app.post('/api/service/cloudDrive/io/upload', async (req, res) => {
   try {
