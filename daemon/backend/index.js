@@ -14,7 +14,7 @@ const rateLimit = require('express-rate-limit');
 const banUtils = require('./utils/banUtils');
 const crypto = require('crypto');
 const stream = require('stream');
-const root = '../../';
+const root = path.relative(__dirname, '../../');
 
 const upload = multer({
   storage: multer.memoryStorage(), // 使用内存存储
