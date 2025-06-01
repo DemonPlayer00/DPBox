@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const Redis = require('redis');
+const redis = require('./utils/database').redisClient;
 const path = require('path');
 const fs = require('fs-extra');
 const http = require('http');
@@ -33,20 +33,7 @@ const options = {
   cert: fs.readFileSync(`${root}/ssl/DPBox.org.crt`)
 }
 
-const redis = Redis.createClient({
-  port: 1145,
-  host: 'localhost',
-  password: '',
-  db: 0
-});  // 默认连接到 localhost:6379
 
-// 确保 Redis 客户端已连接
-redis.connect()
-  .then(() => console.log('Redis client connected'))
-  .catch((err) => {
-    console.error('Failed to connect to Redis:', err);
-    process.exit(1);
-  });
 
 const app = express();
 app.use(async (req, res, next) => {
@@ -137,7 +124,7 @@ app.post('/api/user/updateUserInfo', async (req, res) => {
     await userio.write()
 });
 app.get('/api/user/getServices', async (req, res) => {
-  let services = await redis.hGetAll(`permission::${req.LOCAL.userInfo.permission}`) || {};
+  let services = await redis.hgetall(`permission::${req.LOCAL.userInfo.permission}`) || {};
   res.json({ code: 'SUCCESS', message: '获取服务列表成功', services: services });
 })
 app.use('/api/service/cloudDrive/io{/*path}', async (req, res, next) => {

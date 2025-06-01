@@ -1,12 +1,8 @@
 const lru = require('lru-cache');
-const redis = require('redis').createClient();
+const redis = require("./database").redisClient;
 const { merge } = require('lodash');
 const utils = require('./utils');
 const crypto = require('crypto');
-
-// 连接Redis并添加错误监听
-redis.connect().catch(err => console.error('Redis连接失败:', err));
-redis.on('error', err => console.error('Redis错误:', err));
 
 // 配置缓存
 const token_phone_cache = new lru.LRUCache({
@@ -40,7 +36,7 @@ async function getTokenByPhone(phone, password, newToken) {
         // 获取用户信息（优先本地缓存）
         let cachedUserInfo = phone_userInfo_cache.get(phone);
         if (!cachedUserInfo) {
-            cachedUserInfo = await redis.hGetAll(`UserInfo::${phone}`);
+            cachedUserInfo = await redis.hgetall(`UserInfo::${phone}`);
             if (!cachedUserInfo || Object.keys(cachedUserInfo).length === 0) {
                 return null;
             }
@@ -106,7 +102,7 @@ async function readUserInfo(token) {
         // 获取用户信息
         let userInfo = phone_userInfo_cache.get(phone);
         if (!userInfo) {
-            userInfo = await redis.hGetAll(`UserInfo::${phone}`);
+            userInfo = await redis.hgetall(`UserInfo::${phone}`);
             if (!userInfo || Object.keys(userInfo).length === 0) {
                 return null;
             }
@@ -138,7 +134,7 @@ async function writeUserInfo(userInfo, token) {
         // 获取现有用户信息
         let cachedUserInfo = phone_userInfo_cache.get(phone);
         if (!cachedUserInfo) {
-            cachedUserInfo = await redis.hGetAll(`UserInfo::${phone}`);
+            cachedUserInfo = await redis.hgetall(`UserInfo::${phone}`);
         }
         
         // 合并更新

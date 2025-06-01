@@ -1,8 +1,6 @@
-const Redis = require('redis');
 const rateLimit = require('express-rate-limit');
 const lru = require('lru-cache');
-const redis = Redis.createClient();
-redis.connect();
+const redis = require("./database.js").redisClient;
 
 const banCache = new lru.LRUCache({
     max: 10000,
