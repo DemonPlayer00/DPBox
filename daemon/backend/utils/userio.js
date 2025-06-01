@@ -37,15 +37,22 @@ async function getTokenByPhone(phone, password, newToken) {
         let cachedUserInfo = phone_userInfo_cache.get(phone);
         if (!cachedUserInfo) {
             cachedUserInfo = await redis.hgetall(`UserInfo::${phone}`);
-            if (!cachedUserInfo || Object.keys(cachedUserInfo).length === 0) {
-                return null;
+            if (!cachedUserInfo) {
+                // 如果用户信息不存在，创建新用户信息
+                cachedUserInfo = { phone, password: utils.hash(password) };
+            } else if (!cachedUserInfo.password){
+                // 如果 Redis 中没有密码，使用用户传递的密码
+                cachedUserInfo.password = utils.hash(password);
             }
         }
-        console.log(cachedUserInfo);
-        if(!cachedUserInfo.password){
-            cachedUserInfo.password=utils.hash(password);
-            writeUserInfo(phone, cachedUserInfo.token);
+
+        // 如果缓存中没有密码，更新缓存
+        if (!cachedUserInfo.password) {
+            cachedUserInfo.password = utils.hash(password);
+            phone_userInfo_cache.set(phone, cachedUserInfo);
         }
+
+        console.log(cachedUserInfo);
 
         // 安全验证密码
         if (!secureCompare(cachedUserInfo.password, utils.hash(password))) {
@@ -53,8 +60,8 @@ async function getTokenByPhone(phone, password, newToken) {
         }
 
         let token;
-        if (newToken) {
-            // 保存旧token以便清理
+        if (newToken || !cachedUserInfo.token) {
+            // 保存旧token以便清理（如果存在）
             const oldToken = cachedUserInfo.token;
             
             // 生成新token
@@ -62,16 +69,22 @@ async function getTokenByPhone(phone, password, newToken) {
             
             // 使用事务保证原子性
             const multi = redis.multi()
+                .hSet(`UserInfo::${phone}`, 'password', cachedUserInfo.password)  // 确保密码已设置
                 .hSet(`UserInfo::${phone}`, 'token', token)  // 设置新token
                 .set(`Token::${token}`, phone, 'EX', 60 * 60 * 24 * 7)  // 创建新token映射
-                .del(`Token::${oldToken}`);  // 删除旧token映射
+            
+            if (oldToken) {
+                multi.del(`Token::${oldToken}`);  // 删除旧token映射（如果存在）
+            }
             
             await multi.exec();
             
             // 更新缓存
             cachedUserInfo.token = token;
             token_phone_cache.set(token, phone);  // 设置新token映射
-            token_phone_cache.delete(oldToken);    // 删除旧token映射
+            if (oldToken) {
+                token_phone_cache.delete(oldToken);    // 删除旧token映射（如果存在）
+            }
             phone_userInfo_cache.set(phone, cachedUserInfo);
         } else {
             // 使用现有token
@@ -87,6 +100,7 @@ async function getTokenByPhone(phone, password, newToken) {
         return null;
     }
 }
+
 
 async function readUserInfo(token) {
     if (!token) return null;
