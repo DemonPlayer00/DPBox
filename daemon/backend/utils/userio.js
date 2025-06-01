@@ -172,8 +172,15 @@ async function writeUserInfo(userInfo, token) {
     }
 }
 
+function refresh(){
+    token_phone_cache.clear();
+    phone_userInfo_cache.clear();
+    console.log('refresh success.');
+}
+
 module.exports = {
     readUserInfo,
     writeUserInfo,
-    getTokenByPhone
+    getTokenByPhone,
+    refresh
 };

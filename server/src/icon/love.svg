@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="512"
+   height="512"
+   viewBox="0 0 512 512"
+   version="1.1"
+   id="svg1"
+   inkscape:version="1.4.2 (ebf0e940d0, 2025-05-08)"
+   sodipodi:docname="love.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#505050"
+     bordercolor="#ffffff"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="1"
+     inkscape:deskcolor="#505050"
+     inkscape:document-units="px"
+     inkscape:zoom="1.1076165"
+     inkscape:cx="256.40644"
+     inkscape:cy="242.86385"
+     inkscape:window-width="1920"
+     inkscape:window-height="1014"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs1" />
+  <g
+     inkscape:label="图层 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       id="path1"
+       style="fill:#cccccc;fill-rule:evenodd;stroke-width:16.9404"
+       d="M 143.23633 60.462891 C 85.745583 60.462891 46 108.71813 46 192.78516 C 46 253.65159 98.560081 331.4558 151.12109 380.04297 C 201.6007 426.70612 252.08124 459.33284 256 461.84375 L 256 462 C 256 462 256.0403 461.9735 256.12109 461.92188 C 256.2022 461.9737 256.24414 462 256.24414 462 L 256.24414 461.84375 C 260.16291 459.33285 310.64332 426.70612 361.12305 380.04297 C 413.68417 331.4558 466.24414 253.65159 466.24414 192.78516 C 466.24414 108.71813 426.49868 60.462891 369.00781 60.462891 C 313.07923 60.462891 259.01797 157.35512 256.12109 162.62109 C 253.22235 157.35176 199.16373 60.462891 143.23633 60.462891 z " />
+  </g>
+</svg>

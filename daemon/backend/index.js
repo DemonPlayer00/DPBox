@@ -14,7 +14,14 @@ const rateLimit = require('express-rate-limit');
 const banUtils = require('./utils/banUtils');
 const crypto = require('crypto');
 const stream = require('stream');
+const interface = require('./utils/interface');
 const root = path.join(__dirname, '../../');
+
+interface.init(root);
+
+interface.on('userio.refresh', async () => {
+  userio.refresh();
+});
 
 const upload = multer({
   storage: multer.memoryStorage(), // 使用内存存储
@@ -120,11 +127,19 @@ app.get('/api/user/getHeadImg', async (req, res) => {
 });
 app.post('/api/user/updateUserInfo', async (req, res) => {
   const { phone, password, name, headImg } = req.body;
-  if (phone !== req.LOCAL.userInfo.phone)
-    await userio.write()
+  if (phone !== req.LOCAL.userInfo.phone){
+    return res.status(400).json({ code: 'BAD_REQUEST', message: '不能修改电话号码' });
+  }
 });
 app.get('/api/user/getServices', async (req, res) => {
-  let services = await redis.hgetall(`permission::${req.LOCAL.userInfo.permission}`) || {};
+  //let services = await redis.hgetall(`permission::${req.LOCAL.userInfo.permission}`) || {};
+  let permissions = req.LOCAL.userInfo.permission.split(';');
+  let services = {};
+  for (let i = 0; i < permissions.length; i++) {
+    let permission = permissions[i];
+    let service = await redis.hgetall(`permission::${permission}`) || {};
+    Object.assign(services, service);
+  }
   res.json({ code: 'SUCCESS', message: '获取服务列表成功', services: services });
 })
 app.use('/api/service/cloudDrive/io{/*path}', async (req, res, next) => {

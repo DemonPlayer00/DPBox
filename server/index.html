@@ -50,6 +50,10 @@
             onclick="window.LOCAL.gotoCloudDrive();window.LOCAL.cancelSideBar()">
             <img class="icon" src="/src/icon/cloud.svg">云盘
         </div>
+        <div class="sideBar_content" style="display: none;" id="sexSeacher"
+            onclick="window.LOCAL.gotoSexSeacher();window.LOCAL.cancelSideBar()">
+            <img class="icon" src="/src/icon/love.svg">SExSeacher
+        </div>
     </div>
     <div class="sideBar_overlay" id="sideBar_overlay"></div>
     <div class="window" id="mainWindow" style="display:none;">
@@ -110,6 +114,9 @@
         </div>
         很长一段时间都不会写这个功能，所以先留个坑。
     </div>
+    <div class="window" id="sexSeacherWindow" style="display:none;">
+        oh!
+    </div>
 </body>
 <script type="module">
     import cloudio from '/src/jsUtils/cloudio.js';
@@ -145,6 +152,7 @@
                 main: document.getElementById("mainWindow"),
                 settings: document.getElementById("settingsWindow"),
                 globalUserManager: document.getElementById("globalUserManagerWindow"),
+                sexSeacher: document.getElementById("sexSeacherWindow"),
                 cloudDrive: {
                     element: document.getElementById("cloudDriveWindow"),
                     content: document.getElementById("cloudDriveContent"),
@@ -278,8 +286,10 @@
         initServices() {
             userInfoHelper.getUserServices().then((iServices) => {
                 this.user.services = iServices;
+                console.log(this.user.services);
                 if (this.user.services.cloudDrive) document.getElementById("cloudDrive").style.display = 'flex';
                 if (this.user.services.globalUserManager) document.getElementById("globalUserManager").style.display = 'flex';
+                if (this.user.services.sexSeacher) document.getElementById("sexSeacher").style.display = 'flex';
                 document.getElementById("servicesLoad").style.display = 'none';
 
                 if (this.user.services) {
@@ -297,6 +307,13 @@
                         case 'globalUserManager':
                             if (this.user.services.globalUserManager) {
                                 this.gotoGlobalUserManager();
+                            } else {
+                                this.gotoMain();
+                            }
+                            break;
+                        case 'sexSeacher':
+                            if (this.user.services.sexSeacher) {
+                                this.gotoSexSeacher();
                             } else {
                                 this.gotoMain();
                             }
@@ -458,11 +475,20 @@
             window.history.replaceState(null, null, `${window.location.pathname}?${this.params.toString()}`);
         }
 
+        gotoSexSeacher() {
+            this.title.innerText = "SexSeacher";
+            this.hideAllWindows();
+            this.windows.sexSeacher.style.display = 'flex';
+            this.params.set('page','sexSeacher');
+            window.history.replaceState(null, null, `${window.location.pathname}?${this.params.toString()}`);
+        }
+
         hideAllWindows() {
             this.windows.main.style.display = 'none';
             this.windows.settings.style.display = 'none';
             this.windows.globalUserManager.style.display = 'none';
             this.windows.cloudDrive.element.style.display = 'none';
+            this.windows.sexSeacher.style.display = 'none';
         }
 
         backPath() {
@@ -538,6 +564,7 @@
         gotoSettings: () => app.gotoSettings(),
         gotoCloudDrive: () => app.gotoCloudDrive(),
         gotoGlobalUserManager: () => app.gotoGlobalUserManager(),
+        gotoSexSeacher: () => app.gotoSexSeacher(),
         backPath: () => app.backPath(),
         toEditMode: () => app.toEditMode(),
         toViewMode: () => app.toViewMode(),
