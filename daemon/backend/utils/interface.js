@@ -95,16 +95,6 @@ function on(command, callback) {
     });
 }
 
-process.on('SIGINT', () => {
-    closeFifo();
-    process.exit();
-});
-
-process.on('SIGTERM', () => {
-    closeFifo();
-    process.exit();
-});
-
 module.exports = {
     init,
     on
