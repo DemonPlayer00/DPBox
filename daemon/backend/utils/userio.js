@@ -69,8 +69,8 @@ async function getTokenByPhone(phone, password, newToken) {
             
             // 使用事务保证原子性
             const multi = redis.multi()
-                .hSet(`UserInfo::${phone}`, 'password', cachedUserInfo.password)  // 确保密码已设置
-                .hSet(`UserInfo::${phone}`, 'token', token)  // 设置新token
+                .hset(`UserInfo::${phone}`, 'password', cachedUserInfo.password)  // 确保密码已设置
+                .hset(`UserInfo::${phone}`, 'token', token)  // 设置新token
                 .set(`Token::${token}`, phone, 'EX', 60 * 60 * 24 * 7)  // 创建新token映射
             
             if (oldToken) {
