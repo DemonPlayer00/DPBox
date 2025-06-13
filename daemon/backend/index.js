@@ -11,10 +11,10 @@ const userio = require('./utils/userio');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const rateLimit = require('express-rate-limit');
-const banUtils = require('./utils/banUtils');
 const crypto = require('crypto');
 const stream = require('stream');
 const interface = require('./utils/interface');
+const database = require('./utils/database');
 const root = path.join(__dirname, '../../');
 
 interface.init(root);
@@ -44,11 +44,6 @@ const options = {
 
 const app = express();
 app.use(async (req, res, next) => {
-  const banstat = await banUtils.banstat(req.ip);
-  if (banstat) {
-    console.log(`Banned IP: ${req.ip}, reason: ${banstat.reason}`);
-    return res.status(403).json({ code: 'FORBIDDEN', message: 'Yor IP has been banned, please try again later.', discharge: banstat });
-  }
   console.log(`${req.ip}: [${req.method}] ${req.url}`);
   next();
 })
@@ -65,7 +60,6 @@ app.use((req, res, next) => {
 });
 app.use(cookieParser());
 
-//app.use(banUtils.apiLimiter);
 app.post('/api/user/login', async (req, res) => {
   const { phone, password, newToken } = req.body;
   const token = await userio.getTokenByPhone(phone, password, newToken);
@@ -132,16 +126,23 @@ app.post('/api/user/updateUserInfo', async (req, res) => {
   }
 });
 app.get('/api/user/getServices', async (req, res) => {
-  //let services = await redis.hgetall(`permission::${req.LOCAL.userInfo.permission}`) || {};
-  let permissions = req.LOCAL.userInfo.permission.split(';');
+  let permissions = req.LOCAL.userInfo.permission;
   let services = {};
+
   for (let i = 0; i < permissions.length; i++) {
     let permission = permissions[i];
-    let service = await redis.hgetall(`permission::${permission}`) || {};
-    Object.assign(services, service);
+    let [service] = await database.query('SELECT * FROM permissions WHERE name = ? LIMIT 1', [permission]) || {};
+    // 假设 service 是一个对象，键是服务名，值是布尔值
+    for (let serviceKey in service) {
+      if (service[serviceKey] == true) {
+        services[serviceKey] = true;
+      }
+    }
   }
+
   res.json({ code: 'SUCCESS', message: '获取服务列表成功', services: services });
 })
+
 app.use('/api/service/cloudDrive/io{/*path}', async (req, res, next) => {
   const qpath = req.query.path;
   const qroot = path.join(root, `/api/data/userCloud/${req.LOCAL.userInfo.resid}/`)
